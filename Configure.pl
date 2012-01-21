@@ -108,12 +108,27 @@ MAIN: {
             '$(PARROT_DLL_COPY) : $(PARROT_DLL)'."\n\t".'$(CP) $(PARROT_DLL) .';
     }
 
+    if ($config{'parrot::cygcross'}) {
+        my $_ = `cygpath --unix '$config{'parrot::bindir'}'`;
+        chomp;
+        $config{'parrot::bindir'} = $_;
+    }
+
     my $make = fill_template_text('@make@', %config);
 
     if ($make eq 'nmake') {
         system_or_die('cd 3rdparty\dyncall && Configure.bat' .
             ($config{'parrot::archname'} =~ /x64/ ? ' /target-x64' : ''));
         $config{'dyncall_build'} = 'cd 3rdparty\dyncall && nmake Nmakefile';
+    }
+    elsif ($config{'parrot::cygcross'}) {
+        my $crosstools =
+            join ' ', map { $_.'='.$config{'parrot::'.lc} } qw(CC AR LD);
+        my $arch = $config{'parrot::cpuarch'} eq 'amd64' ? 'x64' : 'x86';
+        my $flags = "--target-windows --target-$arch";
+        my $vars = "BUILD_DIR=. $crosstools";
+        system_or_die("cd 3rdparty/dyncall && sh configure $flags");
+        $config{'dyncall_build'} = "cd 3rdparty/dyncall && $vars $make";
     }
     else {
         system_or_die('cd 3rdparty/dyncall && sh configure');
