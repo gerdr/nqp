@@ -2273,7 +2273,7 @@ inline op nqp_sha1(out STR, in STR) :base_core {
 
     /* Free the C-string and put result into a new string. */
     Parrot_str_free_cstring(cstr);
-    $1 = Parrot_str_new_init(interp, &output, 40, Parrot_utf8_encoding_ptr, 0);
+    $1 = Parrot_str_new_init(interp, output, 40, Parrot_utf8_encoding_ptr, 0);
 }
 
 
